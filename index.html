@@ -344,13 +344,43 @@ body {
   gap: 14px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
-  cursor: default;
+  cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 }
 [data-theme="light"] .chapter-item { border-bottom-color: rgba(0,0,0,0.05); }
 .chapter-item:last-child { border-bottom: none; }
 .chapter-item:hover .ch-title { color: var(--moon); }
 .chapter-item:hover .ch-num { color: var(--amber); }
+
+/* TOC active flash on click */
+.chapter-item.toc-active {
+  background: rgba(123,156,255,0.1);
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.chapter-item.toc-active .ch-title { color: var(--moon); }
+.chapter-item.toc-active .ch-num   { color: var(--amber); }
+
+/* TOC passive reading indicator — currently in view */
+.chapter-item.toc-reading .ch-num {
+  color: var(--moonglow);
+  font-weight: 700;
+}
+.chapter-item.toc-reading .ch-title {
+  color: var(--moon);
+}
+.chapter-item.toc-reading::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 100%;
+  background: var(--moonglow);
+  border-radius: 2px;
+  position: absolute;
+  left: 0;
+}
 
 .ch-num {
   font-family: 'Fira Code', monospace;
@@ -1148,16 +1178,16 @@ hr.ch-hr {
       <div class="chapter-index">
         <div class="chapter-index-title">// Table of Contents</div>
 
-        <div class="chapter-item"><span class="ch-num">01</span><span class="ch-icon">🌙</span><div class="ch-info"><div class="ch-title">Origin Story</div><div class="ch-sub">how lua was born in 1993</div></div></div>
-        <div class="chapter-item"><span class="ch-num">02</span><span class="ch-icon">⚡</span><div class="ch-info"><div class="ch-title">The Language Core</div><div class="ch-sub">syntax, values, scoping</div></div></div>
-        <div class="chapter-item"><span class="ch-num">03</span><span class="ch-icon">⬡</span><div class="ch-info"><div class="ch-title">Tables: The Everything Type</div><div class="ch-sub">arrays, maps, objects — one structure</div></div></div>
-        <div class="chapter-item"><span class="ch-num">04</span><span class="ch-icon">🪄</span><div class="ch-info"><div class="ch-title">Metatables & Magic</div><div class="ch-sub">operator overloading & OOP</div></div></div>
-        <div class="chapter-item"><span class="ch-num">05</span><span class="ch-icon">🌀</span><div class="ch-info"><div class="ch-title">Coroutines</div><div class="ch-sub">cooperative multitasking, 20 years ahead</div></div></div>
-        <div class="chapter-item"><span class="ch-num">06</span><span class="ch-icon">🔩</span><div class="ch-info"><div class="ch-title">The C DNA</div><div class="ch-sub">embedding lua in everything</div></div></div>
-        <div class="chapter-item"><span class="ch-num">07</span><span class="ch-icon">🚀</span><div class="ch-info"><div class="ch-title">LuaJIT: Speed Demon</div><div class="ch-sub">when scripting meets machine code</div></div></div>
-        <div class="chapter-item"><span class="ch-num">08</span><span class="ch-icon">🌍</span><div class="ch-info"><div class="ch-title">Lua in the Wild</div><div class="ch-sub">who actually uses lua & why</div></div></div>
-        <div class="chapter-item"><span class="ch-num">09</span><span class="ch-icon">🛠</span><div class="ch-info"><div class="ch-title">Ecosystem & Dialects</div><div class="ch-sub">luarocks, luau, fennel, moonscript</div></div></div>
-        <div class="chapter-item"><span class="ch-num">10</span><span class="ch-icon">🔭</span><div class="ch-info"><div class="ch-title">Lua's Future</div><div class="ch-sub">where the moon is headed</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch01')"><span class="ch-num">01</span><span class="ch-icon">🌙</span><div class="ch-info"><div class="ch-title">Origin Story</div><div class="ch-sub">how lua was born in 1993</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch02')"><span class="ch-num">02</span><span class="ch-icon">⚡</span><div class="ch-info"><div class="ch-title">The Language Core</div><div class="ch-sub">syntax, values, scoping</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch03')"><span class="ch-num">03</span><span class="ch-icon">⬡</span><div class="ch-info"><div class="ch-title">Tables: The Everything Type</div><div class="ch-sub">arrays, maps, objects — one structure</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch04')"><span class="ch-num">04</span><span class="ch-icon">🪄</span><div class="ch-info"><div class="ch-title">Metatables & Magic</div><div class="ch-sub">operator overloading & OOP</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch05')"><span class="ch-num">05</span><span class="ch-icon">🌀</span><div class="ch-info"><div class="ch-title">Coroutines</div><div class="ch-sub">cooperative multitasking, 20 years ahead</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch06')"><span class="ch-num">06</span><span class="ch-icon">🔩</span><div class="ch-info"><div class="ch-title">The C DNA</div><div class="ch-sub">embedding lua in everything</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch07')"><span class="ch-num">07</span><span class="ch-icon">🚀</span><div class="ch-info"><div class="ch-title">LuaJIT: Speed Demon</div><div class="ch-sub">when scripting meets machine code</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch08')"><span class="ch-num">08</span><span class="ch-icon">🌍</span><div class="ch-info"><div class="ch-title">Lua in the Wild</div><div class="ch-sub">who actually uses lua & why</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch09')"><span class="ch-num">09</span><span class="ch-icon">🛠</span><div class="ch-info"><div class="ch-title">Ecosystem & Dialects</div><div class="ch-sub">luarocks, luau, fennel, moonscript</div></div></div>
+        <div class="chapter-item" onclick="navigateToChapter('ch10')"><span class="ch-num">10</span><span class="ch-icon">🔭</span><div class="ch-info"><div class="ch-title">Lua's Future</div><div class="ch-sub">where the moon is headed</div></div></div>
       </div>
     </div>
   </div>
@@ -1191,7 +1221,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 01: ORIGIN STORY
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch01">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 01</span>
       <div class="ch-line"></div>
@@ -1236,7 +1266,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 02: THE LANGUAGE CORE
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch02">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--amber);border-color:rgba(232,169,74,0.3);">Chapter 02</span>
       <div class="ch-line"></div>
@@ -1350,7 +1380,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 03: TABLES
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch03">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--sage);border-color:rgba(74,219,154,0.3);">Chapter 03</span>
       <div class="ch-line"></div>
@@ -1415,7 +1445,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 04: METATABLES & MAGIC
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch04">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--rose);border-color:rgba(232,74,123,0.3);">Chapter 04</span>
       <div class="ch-line"></div>
@@ -1496,7 +1526,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 05: COROUTINES
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch05">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 05</span>
       <div class="ch-line"></div>
@@ -1608,7 +1638,7 @@ hr.ch-hr {
   <!-- ────────────────────────────────────────────────────
        CH 06: THE C DNA
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch06">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--amber);border-color:rgba(232,169,74,0.3);">Chapter 06</span>
       <div class="ch-line"></div>
@@ -1692,7 +1722,7 @@ lua_State *<span class="var">L</span> = <span class="fn">luaL_newstate</span>();
   <!-- ────────────────────────────────────────────────────
        CH 07: LUAJIT
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch07">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--ember);border-color:rgba(232,90,42,0.3);">Chapter 07</span>
       <div class="ch-line"></div>
@@ -1750,7 +1780,7 @@ lua_State *<span class="var">L</span> = <span class="fn">luaL_newstate</span>();
   <!-- ────────────────────────────────────────────────────
        CH 08: LUA IN THE WILD
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch08">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--sage);border-color:rgba(74,219,154,0.3);">Chapter 08</span>
       <div class="ch-line"></div>
@@ -1808,7 +1838,7 @@ lua_State *<span class="var">L</span> = <span class="fn">luaL_newstate</span>();
   <!-- ────────────────────────────────────────────────────
        CH 09: ECOSYSTEM & DIALECTS
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch09">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--rose);border-color:rgba(232,74,123,0.3);">Chapter 09</span>
       <div class="ch-line"></div>
@@ -1861,7 +1891,7 @@ lua_State *<span class="var">L</span> = <span class="fn">luaL_newstate</span>();
   <!-- ────────────────────────────────────────────────────
        CH 10: LUA'S FUTURE
   ──────────────────────────────────────────────────── -->
-  <div class="chapter">
+  <div class="chapter" id="ch10">
     <div class="chapter-marker">
       <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 10</span>
       <div class="ch-line"></div>
@@ -1996,6 +2026,45 @@ btn.addEventListener('click', () => {
     emoji.textContent = '☀️';
   }
 });
+
+// ── TOC smooth scroll ──
+function navigateToChapter(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+
+  // Offset so the chapter heading isn't hidden under sticky elements
+  const offset = 32;
+  const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+  window.scrollTo({ top, behavior: 'smooth' });
+
+  // Briefly highlight the active TOC item
+  document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('toc-active'));
+  const items = document.querySelectorAll('.chapter-item');
+  const ids = ['ch01','ch02','ch03','ch04','ch05','ch06','ch07','ch08','ch09','ch10'];
+  const idx = ids.indexOf(id);
+  if (idx !== -1 && items[idx]) {
+    items[idx].classList.add('toc-active');
+    setTimeout(() => items[idx].classList.remove('toc-active'), 2000);
+  }
+}
+
+// ── Highlight active chapter in TOC on scroll ──
+const chapterEls = document.querySelectorAll('.chapter[id]');
+const tocItems   = document.querySelectorAll('.chapter-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const ids = ['ch01','ch02','ch03','ch04','ch05','ch06','ch07','ch08','ch09','ch10'];
+      const idx = ids.indexOf(entry.target.id);
+      tocItems.forEach(el => el.classList.remove('toc-reading'));
+      if (idx !== -1 && tocItems[idx]) tocItems[idx].classList.add('toc-reading');
+    }
+  });
+}, { threshold: 0.15 });
+
+chapterEls.forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
