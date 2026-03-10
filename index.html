@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lua — The Moon Language | LinkedIn Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+/* ── DARK THEME (default) ── */
+:root {
+  --void:       #07080f;
+  --deep:       #0e1120;
+  --surface:    #141729;
+  --border:     rgba(255,255,255,0.07);
+  --moon:       #c8d8ff;
+  --moonglow:   #7b9cff;
+  --amber:      #e8a94a;
+  --ember:      #e85a2a;
+  --sage:       #4adb9a;
+  --rose:       #e84a7b;
+  --text:       #d4d8e8;
+  --muted:      #6b7280;
+  --paper:      #f7f4ef;
+  --code-bg:    #090d1a;
+  --cover-bg:   #07080f;
+  --vis-bg:     linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005));
+  --tc-bg:      rgba(255,255,255,0.02);
+  --eco-bg:     rgba(255,255,255,0.015);
+  --stat-bg:    rgba(255,255,255,0.02);
+  --stat-hover: rgba(123,156,255,0.05);
+  --pq-bg:      rgba(123,156,255,0.04);
+  --pq-border:  rgba(123,156,255,0.15);
+  --br-left-bg: rgba(123,156,255,0.04);
+  --br-right-bg:rgba(74,219,154,0.04);
+  --br-mid-bg:  rgba(232,90,42,0.08);
+  --br-mid-bl:  rgba(232,90,42,0.2);
+  --br-stack-bg:rgba(232,90,42,0.12);
+  --ci-bg:      rgba(255,255,255,0.03);
+  --sn-dead-bg: rgba(107,114,128,0.06);
+  --sn-sus-bg:  rgba(232,169,74,0.06);
+  --sn-run-bg:  rgba(74,219,154,0.06);
+  --sn-nor-bg:  rgba(123,156,255,0.06);
+  --perf-track: rgba(255,255,255,0.05);
+  --tl-dot-bg:  var(--void);
+  --cmt-color:  #4b5563;
+  --tag-hover-bg:rgba(123,156,255,0.06);
+  --tag-hover-cl:var(--moonglow);
+  --tag-hover-br:rgba(123,156,255,0.4);
+  --body-bg:    var(--void);
+}
+
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --void:       #faf8f4;
+  --deep:       #f0ece4;
+  --surface:    #e8e2d8;
+  --border:     rgba(0,0,0,0.09);
+  --moon:       #1e3a6e;
+  --moonglow:   #2c5fbd;
+  --amber:      #b06a00;
+  --ember:      #c4380a;
+  --sage:       #1a7a50;
+  --rose:       #b81f5a;
+  --text:       #1e2030;
+  --muted:      #7a7060;
+  --paper:      #faf8f4;
+  --code-bg:    #1a1e2e;
+  --cover-bg:   #1a2340;
+  --vis-bg:     linear-gradient(135deg,rgba(0,0,0,0.02),rgba(0,0,0,0.01));
+  --tc-bg:      rgba(255,255,255,0.7);
+  --eco-bg:     rgba(255,255,255,0.6);
+  --stat-bg:    rgba(255,255,255,0.7);
+  --stat-hover: rgba(44,95,189,0.06);
+  --pq-bg:      rgba(44,95,189,0.05);
+  --pq-border:  rgba(44,95,189,0.18);
+  --br-left-bg: rgba(44,95,189,0.05);
+  --br-right-bg:rgba(26,122,80,0.05);
+  --br-mid-bg:  rgba(196,56,10,0.06);
+  --br-mid-bl:  rgba(196,56,10,0.18);
+  --br-stack-bg:rgba(196,56,10,0.08);
+  --ci-bg:      rgba(255,255,255,0.6);
+  --sn-dead-bg: rgba(100,100,100,0.06);
+  --sn-sus-bg:  rgba(176,106,0,0.07);
+  --sn-run-bg:  rgba(26,122,80,0.07);
+  --sn-nor-bg:  rgba(44,95,189,0.07);
+  --perf-track: rgba(0,0,0,0.07);
+  --tl-dot-bg:  var(--void);
+  --cmt-color:  #8a9ab0;
+  --tag-hover-bg:rgba(44,95,189,0.07);
+  --tag-hover-cl:var(--moonglow);
+  --tag-hover-br:rgba(44,95,189,0.35);
+  --body-bg:    #faf8f4;
+}
+
+/* ── THEME TOGGLE BUTTON ── */
+.theme-toggle {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 52px;
+  height: 28px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: background 0.4s, border-color 0.4s, box-shadow 0.3s;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] .theme-toggle {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.theme-toggle:hover {
+  box-shadow: 0 4px 28px rgba(123,156,255,0.35);
+  border-color: rgba(123,156,255,0.5);
+}
+
+.toggle-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8d8ff, #7b9cff);
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), background 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transform: translateX(0px);
+}
+
+[data-theme="light"] .toggle-thumb {
+  transform: translateX(24px);
+  background: linear-gradient(135deg, #f5c842, #e8a94a);
+}
+
+.toggle-label {
+  position: absolute;
+  right: 60px;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.3s;
+  pointer-events: none;
+}
+
+[data-theme="light"] .toggle-label {
+  color: rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  line-height: 1.7;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════
+   COVER — full editorial magazine spread
+═══════════════════════════════════════════ */
+.cover {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--cover-bg);
+  transition: background 0.4s ease;
+}
+
+/* Noise texture overlay */
+.cover::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:5;
+}
+
+/* Rotating nebula rings */
+.nebula {
+  position:absolute;
+  border-radius:50%;
+  border: 1px solid rgba(123,156,255,0.12);
+  animation: spinRing linear infinite;
+}
+.nebula-1 { width:700px;height:700px; top:50%;left:50%; transform:translate(-50%,-50%); animation-duration:40s; }
+.nebula-2 { width:500px;height:500px; top:50%;left:50%; transform:translate(-50%,-50%) rotate(30deg); animation-duration:28s; animation-direction:reverse; border-color:rgba(232,169,74,0.1); }
+.nebula-3 { width:340px;height:340px; top:50%;left:50%; transform:translate(-50%,-50%) rotate(60deg); animation-duration:18s; border-color:rgba(74,219,154,0.08); }
+
+@keyframes spinRing {
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+.nebula-1 { animation: spinRing1 40s linear infinite; }
+@keyframes spinRing1 { to { transform: translate(-50%,-50%) rotate(360deg); } }
+.nebula-2 { animation: spinRing2 28s linear infinite reverse; }
+@keyframes spinRing2 { to { transform: translate(-50%,-50%) rotate(-360deg); } }
+.nebula-3 { animation: spinRing3 18s linear infinite; }
+@keyframes spinRing3 { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* Star field */
+.starfield { position:absolute; inset:0; overflow:hidden; }
+.s {
+  position:absolute;
+  background:white;
+  border-radius:50%;
+  animation: blink ease-in-out infinite;
+  transition: background 0.4s;
+}
+[data-theme="light"] .s { background: rgba(30,58,110,0.6); }
+@keyframes blink { 0%,100%{opacity:.1} 50%{opacity:.9} }
+
+/* The moon itself — SVG art */
+.moon-art {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 240px;
+  height: 240px;
+}
+
+/* Cover text */
+.cover-inner {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 250px;
+  max-width: 1400px;
+  padding: 0 48px;
+  align-items: center;
+}
+
+.cover-left { position: relative; }
+
+.cover-kicker {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  color: var(--moonglow);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cover-kicker::before {
+  content:'';
+  width:32px; height:1px;
+  background: var(--moonglow);
+  display:inline-block;
+}
+
+.cover-h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(64px, 8vw, 108px);
+  font-weight: 700;
+  line-height: 0.92;
+  color: var(--moon);
+  letter-spacing: -0.03em;
+}
+
+.cover-h1 em {
+  font-style: italic;
+  color: var(--amber);
+  display: block;
+}
+
+.cover-tagline {
+  margin-top: 28px;
+  font-size: 15px;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  line-height: 1.8;
+  max-width: 440px;
+}
+
+.cover-divider {
+  margin: 32px 0;
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ember), transparent);
+}
+
+.cover-meta-row {
+  display: flex;
+  gap: 24px;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.cover-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+/* Chapter index on cover */
+.chapter-index {
+  background: var(--ci-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  backdrop-filter: blur(12px);
+  transition: background 0.4s;
+}
+
+.chapter-index-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.chapter-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: default;
+  transition: all 0.2s;
+}
+[data-theme="light"] .chapter-item { border-bottom-color: rgba(0,0,0,0.05); }
+.chapter-item:last-child { border-bottom: none; }
+.chapter-item:hover .ch-title { color: var(--moon); }
+.chapter-item:hover .ch-num { color: var(--amber); }
+
+.ch-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: rgba(123,156,255,0.4);
+  width: 28px;
+  flex-shrink:0;
+  transition: color 0.2s;
+}
+[data-theme="light"] .ch-num { color: rgba(44,95,189,0.4); }
+.ch-icon { font-size: 16px; width: 24px; text-align:center; flex-shrink:0; }
+.ch-info { flex: 1; }
+.ch-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: color 0.2s;
+  line-height: 1.2;
+}
+.ch-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.scroll-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--moonglow), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse { 0%,100%{opacity:.3;transform:scaleY(0.8)} 50%{opacity:1;transform:scaleY(1)} }
+
+/* cover bottom bar */
+.cover-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ember) 0%, var(--moonglow) 35%, var(--sage) 65%, var(--amber) 100%);
+  z-index: 20;
+}
+
+/* ═══════════════════════════════════════════
+   ARTICLE BODY
+═══════════════════════════════════════════ */
+.article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 32px 120px;
+  transition: background 0.4s;
+}
+
+/* Author strip */
+.author-strip {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 48px 0 56px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 80px;
+}
+
+.avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--moonglow), var(--sage));
+  display: grid;
+  place-items: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.author-info { flex: 1; }
+.author-name { font-size: 15px; font-weight: 700; color: var(--moon); }
+.author-bio { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--muted); margin-top: 3px; letter-spacing:0.05em; }
+
+.engagement {
+  display: flex;
+  gap: 20px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.eng-item { display: flex; align-items: center; gap: 6px; }
+
+/* ─── CHAPTER HEADERS ─── */
+.chapter {
+  margin-bottom: 96px;
+  position: relative;
+}
+
+.chapter-marker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ch-badge {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+
+.ch-line { flex: 1; height: 1px; background: var(--border); }
+
+.chapter-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.chapter-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 36px;
+  padding-left: 2px;
+}
+
+/* Body text */
+p {
+  font-size: 17px;
+  line-height: 1.9;
+  color: var(--text);
+  margin-bottom: 22px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  opacity: 0.88;
+}
+
+.lede {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 23px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--moon);
+  line-height: 1.65;
+  margin-bottom: 36px;
+  padding-left: 24px;
+  border-left: 2px solid var(--ember);
+}
+
+strong { color: var(--moon); font-weight: 700; }
+em { color: var(--amber); font-style: italic; }
+
+.code-wrap {
+  margin: 36px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3), 0 0 0 1px rgba(123,156,255,0.06);
+  transition: border-color 0.3s;
+}
+
+.code-top {
+  background: rgba(255,255,255,0.03);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dot { width:11px;height:11px;border-radius:50%; }
+.d1{background:#ff5f57;} .d2{background:#febc2e;} .d3{background:#28c840;}
+
+.code-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.code-body {
+  background: #0f1320;
+  padding: 28px 32px;
+  overflow-x: auto;
+}
+
+pre {
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.9;
+  white-space: pre;
+}
+
+.kw  { color: #e879f9; }
+.fn  { color: #34d399; }
+.str { color: #fbbf24; }
+.num { color: #a78bfa; }
+.cmt { color: var(--cmt-color); font-style: italic; }
+.var { color: #93c5fd; }
+.op  { color: #f472b6; }
+.tbl { color: #fb923c; }
+.meta{ color: #f0abfc; }
+
+/* ─── VISUAL DIAGRAMS ─── */
+.vis {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 40px 0;
+  background: var(--vis-bg);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, background 0.4s;
+}
+
+.vis::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 40px; right: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(123,156,255,0.4), transparent);
+}
+
+.vis-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--moonglow);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 36px;
+  opacity: 0.7;
+}
+
+/* ─── TIMELINE / HISTORY ─── */
+.timeline {
+  position: relative;
+  padding-left: 32px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px; top: 8px; bottom: 8px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--moonglow), transparent);
+}
+
+.tl-item {
+  position: relative;
+  margin-bottom: 32px;
+}
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: -27px; top: 7px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--moonglow);
+  background: var(--tl-dot-bg);
+  transition: background 0.2s;
+}
+.tl-item:hover::before { background: var(--moonglow); }
+
+.tl-year {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 0.15em;
+  margin-bottom: 4px;
+}
+.tl-event { font-size: 15px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+.tl-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-family: 'Fira Code', monospace; }
+
+/* ─── TYPE CARDS ─── */
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 32px 0;
+}
+
+.tc {
+  border-radius: 12px;
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, border-color 0.2s, background 0.4s;
+  cursor: default;
+  background: var(--tc-bg);
+}
+.tc:hover { transform: translateY(-4px); border-color: rgba(123,156,255,0.3); }
+
+.tc-glyph {
+  font-size: 26px;
+  margin-bottom: 10px;
+  display: block;
+}
+.tc-name {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--moon);
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.tc-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.tc-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+/* ─── COMPARISON TABLE ─── */
+.ctable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 28px 0;
+  font-size: 13.5px;
+}
+.ctable thead tr {
+  background: rgba(123,156,255,0.06);
+}
+.ctable th {
+  padding: 14px 18px;
+  text-align: left;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--moonglow);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+.ctable td {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.5;
+  opacity: 0.85;
+}
+.ctable tr:last-child td { border-bottom: none; }
+.ctable tr:hover td { background: var(--stat-hover); }
+.ctable td:first-child { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--amber); font-weight: 500; opacity:1; }
+code {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  background: rgba(123,156,255,0.1);
+  color: var(--moonglow);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+/* ─── CALLOUT BOXES ─── */
+.callout {
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 28px 0;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  border: 1px solid;
+  transition: background 0.4s;
+}
+.callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { font-size: 14.5px; line-height: 1.75; }
+.callout-body strong { display: block; margin-bottom: 4px; font-size: 13px; letter-spacing: 0.05em; font-family: 'Fira Code', monospace; }
+
+.co-moon { background: rgba(123,156,255,0.06); border-color: rgba(123,156,255,0.2); }
+.co-moon .callout-body { color: var(--text); opacity:0.88; }
+.co-moon .callout-body strong { color: var(--moonglow); }
+
+.co-amber { background: rgba(232,169,74,0.06); border-color: rgba(232,169,74,0.2); }
+.co-amber .callout-body { color: var(--text); opacity:0.88; }
+.co-amber .callout-body strong { color: var(--amber); }
+
+.co-sage { background: rgba(74,219,154,0.06); border-color: rgba(74,219,154,0.2); }
+.co-sage .callout-body { color: var(--text); opacity:0.88; }
+.co-sage .callout-body strong { color: var(--sage); }
+
+.co-ember { background: rgba(232,90,42,0.06); border-color: rgba(232,90,42,0.2); }
+.co-ember .callout-body { color: var(--text); opacity:0.88; }
+.co-ember .callout-body strong { color: var(--ember); }
+
+/* ─── PULL QUOTE ─── */
+.pq {
+  margin: 48px -20px;
+  padding: 40px 52px;
+  background: var(--pq-bg);
+  border-top: 1px solid var(--pq-border);
+  border-bottom: 1px solid var(--pq-border);
+  position: relative;
+  transition: background 0.4s;
+}
+.pq::before {
+  content: '\201C';
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 140px;
+  color: rgba(123,156,255,0.08);
+  position: absolute;
+  top: -20px; left: 24px;
+  line-height: 1;
+  pointer-events: none;
+}
+.pq p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-style: italic;
+  color: var(--moon);
+  line-height: 1.55;
+  margin-bottom: 16px;
+  position: relative;
+  opacity: 1;
+}
+.pq cite {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ─── STATS ROW ─── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin: 40px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.stat {
+  background: var(--stat-bg);
+  padding: 28px 20px;
+  text-align: center;
+  transition: background 0.2s;
+}
+.stat:hover { background: var(--stat-hover); }
+.stat-n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--moon);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-l { font-family: 'Fira Code', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; line-height: 1.5; text-transform: uppercase; }
+
+/* ─── COROUTINE STATE MACHINE ─── */
+.state-machine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  padding: 8px 0;
+}
+
+.state-node {
+  flex: 1;
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  border: 1px solid;
+  min-width: 0;
+  transition: background 0.4s;
+}
+.sn-name { font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+.sn-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+.sn-dead    { border-color: rgba(107,114,128,0.4); background: var(--sn-dead-bg); }
+.sn-dead .sn-name { color: var(--muted); }
+.sn-suspend { border-color: rgba(232,169,74,0.4); background: var(--sn-sus-bg); }
+.sn-suspend .sn-name { color: var(--amber); }
+.sn-running { border-color: rgba(74,219,154,0.4); background: var(--sn-run-bg); }
+.sn-running .sn-name { color: var(--sage); }
+.sn-normal  { border-color: rgba(123,156,255,0.4); background: var(--sn-nor-bg); }
+.sn-normal .sn-name { color: var(--moonglow); }
+
+.state-arrow { color: var(--muted); font-size: 18px; flex-shrink: 0; }
+
+/* ─── C BRIDGE DIAGRAM ─── */
+.bridge {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: stretch;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+.br-side {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.4s;
+}
+.br-left { background: var(--br-left-bg); }
+.br-right { background: var(--br-right-bg); }
+
+.br-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.br-sub { font-family: 'Fira Code', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.br-item { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+.br-item::before { content:'›'; color: var(--moonglow); }
+
+.br-mid {
+  background: var(--br-mid-bg);
+  border-left: 1px solid var(--br-mid-bl);
+  border-right: 1px solid var(--br-mid-bl);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 140px;
+  transition: background 0.4s;
+}
+.br-mid-title { font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--ember); text-transform: uppercase; text-align: center; }
+.br-stack-item { font-family: 'Fira Code', monospace; font-size: 11px; background: var(--br-stack-bg); border: 1px solid var(--br-mid-bl); border-radius: 6px; padding: 6px 14px; color: var(--text); width: 100%; text-align: center; }
+.br-arrow { color: var(--muted); font-size: 20px; }
+
+/* ─── ECOSYSTEM GRID ─── */
+.eco-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 32px 0;
+}
+
+.eco-card {
+  border-radius: 14px;
+  padding: 24px 20px;
+  border: 1px solid var(--border);
+  background: var(--eco-bg);
+  cursor: default;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.eco-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.eco-card:hover { transform: translateY(-4px); border-color: rgba(123,156,255,0.25); }
+.eco-card:hover::after { opacity: 1; }
+
+.eco-1::after { background: linear-gradient(90deg, var(--moonglow), var(--sage)); }
+.eco-2::after { background: linear-gradient(90deg, var(--amber), var(--ember)); }
+.eco-3::after { background: linear-gradient(90deg, var(--sage), var(--moonglow)); }
+.eco-4::after { background: linear-gradient(90deg, var(--rose), var(--amber)); }
+.eco-5::after { background: linear-gradient(90deg, var(--moonglow), var(--rose)); }
+.eco-6::after { background: linear-gradient(90deg, var(--ember), var(--moonglow)); }
+
+.eco-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+.eco-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.eco-tech { font-family: 'Fira Code', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase; }
+.eco-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* ─── PERFORMANCE BARS ─── */
+.perf-row { margin: 12px 0; }
+.perf-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.perf-label span { color: var(--muted); }
+.perf-track {
+  height: 8px;
+  background: var(--perf-track);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.perf-fill {
+  height: 100%;
+  border-radius: 4px;
+  animation: fillBar 1.5s ease-out forwards;
+  transform-origin: left;
+}
+@keyframes fillBar { from { width: 0; } }
+
+/* ─── HR ─── */
+hr.ch-hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 80px 0;
+}
+
+/* ─── CLOSING SECTION ─── */
+.closing {
+  text-align: center;
+  padding: 60px 0 80px;
+  border-top: 1px solid var(--border);
+}
+
+.closing-glyph {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 80px;
+  color: var(--moonglow);
+  opacity: 0.2;
+  line-height: 1;
+  margin-bottom: 24px;
+}
+
+.closing-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-style: italic;
+  color: var(--moon);
+  line-height: 1.5;
+  max-width: 620px;
+  margin: 0 auto 32px;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 48px;
+}
+.tag {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  letter-spacing: 0.07em;
+  transition: all 0.2s;
+  cursor: default;
+}
+.tag:hover { border-color: var(--tag-hover-br); color: var(--tag-hover-cl); background: var(--tag-hover-bg); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 700px) {
+  .cover-inner { grid-template-columns: 1fr; }
+  .cover-right { display: none; }
+  .type-grid { grid-template-columns: repeat(2,1fr); }
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .eco-grid { grid-template-columns: 1fr 1fr; }
+  .bridge { grid-template-columns: 1fr; }
+  .state-machine { flex-wrap: wrap; }
+}
+
+/* glow on chapter title accent */
+.glow-moon  { color: var(--moonglow); text-shadow: 0 0 40px rgba(123,156,255,0.4); }
+.glow-amber { color: var(--amber);    text-shadow: 0 0 40px rgba(232,169,74,0.35); }
+.glow-sage  { color: var(--sage);     text-shadow: 0 0 40px rgba(74,219,154,0.35); }
+.glow-ember { color: var(--ember);    text-shadow: 0 0 40px rgba(232,90,42,0.35);  }
+.glow-rose  { color: var(--rose);     text-shadow: 0 0 40px rgba(232,74,123,0.35); }
+[data-theme="light"] .glow-moon,
+[data-theme="light"] .glow-amber,
+[data-theme="light"] .glow-sage,
+[data-theme="light"] .glow-ember,
+[data-theme="light"] .glow-rose { text-shadow: none; }
+
+/* light mode cover text override */
+[data-theme="light"] .cover-h1 { color: #e8f0ff; }
+[data-theme="light"] .cover-kicker { color: #a8c0ff; }
+[data-theme="light"] .cover-tagline { color: rgba(220,230,255,0.7); }
+[data-theme="light"] .cover-meta-row { color: rgba(200,215,255,0.6); }
+[data-theme="light"] .chapter-index-title { color: rgba(200,215,255,0.5); }
+[data-theme="light"] .scroll-hint { color: rgba(200,215,255,0.5); }
+
+/* light mode article section */
+[data-theme="light"] .article { background: #faf8f4; }
+[data-theme="light"] .chapter-title { color: #1e2030; }
+[data-theme="light"] .chapter-sub { color: #7a7060; }
+[data-theme="light"] .lede { color: var(--moon); border-left-color: var(--ember); }
+[data-theme="light"] strong { color: #1e3a6e; }
+[data-theme="light"] em { color: #b06a00; }
+[data-theme="light"] .br-stack-item { color: #1e2030; }
+
+/* light mode inline style overrides for bridge/vis dark bg boxes */
+[data-theme="light"] .br-mid-title { color: var(--ember); }
+[data-theme="light"] .br-title { color: inherit; }
+
+/* light mode perf label muted values */
+[data-theme="light"] .perf-label { color: var(--text); }
+[data-theme="light"] .vis { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+
+<!-- ── THEME TOGGLE ── -->
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode">
+  <div class="toggle-thumb" id="toggleThumb">
+    <span id="toggleEmoji">🌙</span>
+  </div>
+</button>
+<span class="toggle-label" id="toggleLabel">dark</span>
+
+<!-- ═══════════════════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════════════════ -->
+<section class="cover">
+
+  <!-- Starfield -->
+  <div class="starfield" id="stars"></div>
+
+  <!-- Rotating nebula rings -->
+  <div class="nebula nebula-1"></div>
+  <div class="nebula nebula-2"></div>
+  <div class="nebula nebula-3"></div>
+
+  <!-- SVG moon center piece -->
+  <svg class="moon-art" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="moonGrad" cx="40%" cy="35%" r="60%">
+        <stop offset="0%" stop-color="#dce8ff" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#1a2a6c" stop-opacity="0.02"/>
+      </radialGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <!-- Outer glow circle -->
+    <circle cx="120" cy="120" r="110" fill="url(#moonGrad)" filter="url(#glow)"/>
+    <!-- Moon crescent -->
+    <circle cx="120" cy="120" r="90" fill="rgba(180,200,255,0.06)" stroke="rgba(180,200,255,0.18)" stroke-width="1"/>
+    <circle cx="155" cy="105" r="75" fill="rgba(7,8,15,0.95)"/>
+    <!-- Craters -->
+    <circle cx="95" cy="130" r="8" fill="none" stroke="rgba(180,200,255,0.12)" stroke-width="1"/>
+    <circle cx="78" cy="108" r="5" fill="none" stroke="rgba(180,200,255,0.1)" stroke-width="1"/>
+    <circle cx="110" cy="150" r="4" fill="none" stroke="rgba(180,200,255,0.08)" stroke-width="1"/>
+    <!-- LUA text inside moon -->
+    <text x="72" y="127" font-family="'Cormorant Garamond', serif" font-size="28" font-weight="700" fill="rgba(200,216,255,0.6)" letter-spacing="6">LUA</text>
+  </svg>
+
+  <div class="cover-inner">
+    <div class="cover-left">
+      <div class="cover-kicker">Deep Dive · 2026 Edition</div>
+      <h1 class="cover-h1">
+        The<br>Moon<br><em>Language</em>
+      </h1>
+      <div class="cover-divider"></div>
+      <p class="cover-tagline">
+        Born in Brazil. Weighs 240KB. Powers Roblox, Redis, Nginx, World of Warcraft, Alan Wake 2, Warframe, Cisco routers, and embedded spacecraft. This is the complete story of Lua.
+      </p>
+      <div class="cover-meta-row">
+        <span>18 min read</span>
+        <span>·</span>
+        <span>Lua 5.5</span>
+        <span>·</span>
+        <span>10 chapters</span>
+      </div>
+    </div>
+
+    <div class="cover-right">
+      <div class="chapter-index">
+        <div class="chapter-index-title">// Table of Contents</div>
+
+        <div class="chapter-item"><span class="ch-num">01</span><span class="ch-icon">🌙</span><div class="ch-info"><div class="ch-title">Origin Story</div><div class="ch-sub">how lua was born in 1993</div></div></div>
+        <div class="chapter-item"><span class="ch-num">02</span><span class="ch-icon">⚡</span><div class="ch-info"><div class="ch-title">The Language Core</div><div class="ch-sub">syntax, values, scoping</div></div></div>
+        <div class="chapter-item"><span class="ch-num">03</span><span class="ch-icon">⬡</span><div class="ch-info"><div class="ch-title">Tables: The Everything Type</div><div class="ch-sub">arrays, maps, objects — one structure</div></div></div>
+        <div class="chapter-item"><span class="ch-num">04</span><span class="ch-icon">🪄</span><div class="ch-info"><div class="ch-title">Metatables & Magic</div><div class="ch-sub">operator overloading & OOP</div></div></div>
+        <div class="chapter-item"><span class="ch-num">05</span><span class="ch-icon">🌀</span><div class="ch-info"><div class="ch-title">Coroutines</div><div class="ch-sub">cooperative multitasking, 20 years ahead</div></div></div>
+        <div class="chapter-item"><span class="ch-num">06</span><span class="ch-icon">🔩</span><div class="ch-info"><div class="ch-title">The C DNA</div><div class="ch-sub">embedding lua in everything</div></div></div>
+        <div class="chapter-item"><span class="ch-num">07</span><span class="ch-icon">🚀</span><div class="ch-info"><div class="ch-title">LuaJIT: Speed Demon</div><div class="ch-sub">when scripting meets machine code</div></div></div>
+        <div class="chapter-item"><span class="ch-num">08</span><span class="ch-icon">🌍</span><div class="ch-info"><div class="ch-title">Lua in the Wild</div><div class="ch-sub">who actually uses lua & why</div></div></div>
+        <div class="chapter-item"><span class="ch-num">09</span><span class="ch-icon">🛠</span><div class="ch-info"><div class="ch-title">Ecosystem & Dialects</div><div class="ch-sub">luarocks, luau, fennel, moonscript</div></div></div>
+        <div class="chapter-item"><span class="ch-num">10</span><span class="ch-icon">🔭</span><div class="ch-info"><div class="ch-title">Lua's Future</div><div class="ch-sub">where the moon is headed</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>scroll</span>
+  </div>
+  <div class="cover-bar"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ARTICLE
+═══════════════════════════════════════════════════════ -->
+<div class="article">
+
+  <!-- Author strip -->
+  <div class="author-strip">
+    <div class="avatar">L</div>
+    <div class="author-info">
+      <div class="author-name">Lua Programming — Editorial Deep Dive</div>
+      <div class="author-bio">// linkedin article · 10 chapters · 18 min · march 2026</div>
+    </div>
+    <div class="engagement">
+      <div class="eng-item">👁 24.1k</div>
+      <div class="eng-item">❤️ 1.4k</div>
+      <div class="eng-item">💬 203</div>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────
+       CH 01: ORIGIN STORY
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 01</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title"><span class="glow-moon">Origin</span> Story</h2>
+    <div class="chapter-sub">// how a data-entry tool became a world language</div>
+
+    <p class="lede">
+      In 1993, three engineers at PUC-Rio were tasked with building a scripting layer for Petrobras — Brazil's state oil giant. They had no idea they were creating something that would outlive every piece of software they'd ever write.
+    </p>
+
+    <p>Roberto Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes chose a bold philosophy: <strong>build a language so small and so embeddable that any application could host it.</strong> No standard file I/O. No networking. No threads. Just the pure kernel of a programming language — and let the host application decide everything else.</p>
+
+    <p>The name "Lua" means <em>Moon</em> in Portuguese. It was partly named as a counterpoint to "Sol" (Sun), a data-description language that had preceded it at PUC-Rio. The Moon doesn't shine on its own — it reflects light from something else. That metaphor perfectly describes Lua: it amplifies the host application, never trying to outshine it.</p>
+
+    <div class="vis">
+      <div class="vis-title">// Lua's Timeline — 32 Years of the Moon</div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-year">1993</div><div class="tl-event">Lua 1.0 born at PUC-Rio</div><div class="tl-desc">Built for Petrobras data-entry. First language from Latin America to achieve global adoption.</div></div>
+        <div class="tl-item"><div class="tl-year">1996</div><div class="tl-event">Lua 3.0 — First public release</div><div class="tl-desc">Metatables introduced. Language opens to the world. Paper published at Software: Practice & Experience.</div></div>
+        <div class="tl-item"><div class="tl-year">2000</div><div class="tl-event">Lua 4.0 — Coroutines arrive</div><div class="tl-desc">Cooperative multitasking baked in. Python and JS won't get this for another 15 years.</div></div>
+        <div class="tl-item"><div class="tl-year">2003</div><div class="tl-event">Lua 5.0 — Full closures, varargs</div><div class="tl-desc">Register-based VM replaces stack-based VM. Massive performance leap. "Programming in Lua" published.</div></div>
+        <div class="tl-item"><div class="tl-year">2006</div><div class="tl-event">LuaJIT 1.0 by Mike Pall</div><div class="tl-desc">One of the fastest dynamic runtimes ever written. FFI makes C calls essentially free.</div></div>
+        <div class="tl-item"><div class="tl-year">2012</div><div class="tl-event">Lua 5.2 — Ephemeron tables</div><div class="tl-desc">Goto statement (!) added for finite state machine patterns. Bitwise ops as library.</div></div>
+        <div class="tl-item"><div class="tl-year">2015</div><div class="tl-event">Lua 5.3 — Integer subtype</div><div class="tl-desc">First-class integers separate from floats. Native bitwise operators. Integer-only floor division.</div></div>
+        <div class="tl-item"><div class="tl-year">2020</div><div class="tl-event">Lua 5.4 — Generational GC</div><div class="tl-desc">Generational garbage collector, to-be-closed variables (&lt;close&gt;), const attributes, and integer warnings. Released June 2020.</div></div>
+        <div class="tl-item"><div class="tl-year">2021</div><div class="tl-event">Luau — Roblox open-sources its Lua fork</div><div class="tl-desc">Typed Lua dialect open-sourced from Roblox. Gradual typing, native code generator, LSP. Now used in Alan Wake 2, Warframe, and Second Life.</div></div>
+        <div class="tl-item"><div class="tl-year">2025</div><div class="tl-event">Lua 5.5 — Released December 22, 2025</div><div class="tl-desc">Global variable declarations, 60% memory savings for large arrays, incremental major GC, named vararg tables, read-only for-loop vars, table.create(), external strings.</div></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-n">240</div><div class="stat-l">KB full<br>runtime</div></div>
+      <div class="stat"><div class="stat-n">32</div><div class="stat-l">Years of<br>development</div></div>
+      <div class="stat"><div class="stat-n">3M+</div><div class="stat-l">Active Lua<br>developers</div></div>
+      <div class="stat"><div class="stat-n">1B+</div><div class="stat-l">Devices running<br>Lua daily</div></div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 02: THE LANGUAGE CORE
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--amber);border-color:rgba(232,169,74,0.3);">Chapter 02</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">The Language <span class="glow-amber">Core</span></h2>
+    <div class="chapter-sub">// eight types, first-class functions, and the local keyword that matters</div>
+
+    <p>Lua is dynamically typed. Values carry their type; variables do not. There are exactly <strong>eight primitive types</strong> — and the deliberate minimalism of this choice cascades through every design decision that follows.</p>
+
+    <div class="type-grid">
+      <div class="tc">
+        <span class="tc-glyph">∅</span>
+        <div class="tc-name">nil</div>
+        <div class="tc-detail">The absence of a value. Deletes table keys when assigned.</div>
+        <span class="tc-badge" style="background:rgba(107,114,128,0.15);color:var(--muted);border:1px solid rgba(107,114,128,0.2);">falsy</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">⚡</span>
+        <div class="tc-name">boolean</div>
+        <div class="tc-detail">true / false. Only nil and false are falsy. Zero is truthy!</div>
+        <span class="tc-badge" style="background:rgba(232,90,42,0.12);color:var(--ember);border:1px solid rgba(232,90,42,0.2);">gotcha</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">π</span>
+        <div class="tc-name">number</div>
+        <div class="tc-detail">Integer (64-bit) or float (double). Lua 5.3+ distinguishes them.</div>
+        <span class="tc-badge" style="background:rgba(74,219,154,0.1);color:var(--sage);border:1px solid rgba(74,219,154,0.2);">dual</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">❝</span>
+        <div class="tc-name">string</div>
+        <div class="tc-detail">Immutable byte sequences. Automatically interned by the VM.</div>
+        <span class="tc-badge" style="background:rgba(123,156,255,0.1);color:var(--moonglow);border:1px solid rgba(123,156,255,0.2);">interned</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">⬡</span>
+        <div class="tc-name">table</div>
+        <div class="tc-detail">The only data structure. Arrays, maps, objects — everything.</div>
+        <span class="tc-badge" style="background:rgba(232,169,74,0.1);color:var(--amber);border:1px solid rgba(232,169,74,0.2);">king</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">λ</span>
+        <div class="tc-name">function</div>
+        <div class="tc-detail">First-class. Closures capture their lexical environment.</div>
+        <span class="tc-badge" style="background:rgba(74,219,154,0.1);color:var(--sage);border:1px solid rgba(74,219,154,0.2);">first-class</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">🔩</span>
+        <div class="tc-name">userdata</div>
+        <div class="tc-detail">Raw C memory blocks. The bridge between Lua and C worlds.</div>
+        <span class="tc-badge" style="background:rgba(232,90,42,0.1);color:var(--ember);border:1px solid rgba(232,90,42,0.2);">c-land</span>
+      </div>
+      <div class="tc">
+        <span class="tc-glyph">🌀</span>
+        <div class="tc-name">thread</div>
+        <div class="tc-detail">A coroutine. Not an OS thread — fully cooperative, zero cost.</div>
+        <span class="tc-badge" style="background:rgba(232,74,123,0.1);color:var(--rose);border:1px solid rgba(232,74,123,0.2);">coroutine</span>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">lua — language fundamentals</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">-- Variables: local vs global (always prefer local)</span>
+<span class="kw">local</span> <span class="var">x</span> = <span class="num">42</span>          <span class="cmt">-- lexically scoped</span>
+<span class="var">y</span>   = <span class="num">99</span>          <span class="cmt">-- global (lives in _G table)</span>
+
+<span class="cmt">-- Multiple assignment — swap without temp variable</span>
+<span class="kw">local</span> <span class="var">a</span>, <span class="var">b</span> = <span class="num">1</span>, <span class="num">2</span>
+<span class="var">a</span>, <span class="var">b</span> = <span class="var">b</span>, <span class="var">a</span>        <span class="cmt">-- a=2, b=1  ✨</span>
+
+<span class="cmt">-- String operations</span>
+<span class="kw">local</span> <span class="var">s</span> = <span class="str">"Lua"</span>
+<span class="fn">print</span>(<span class="op">#</span><span class="var">s</span>)             <span class="cmt">-- 3  (length operator)</span>
+<span class="fn">print</span>(<span class="var">s</span>:<span class="fn">upper</span>())      <span class="cmt">-- "LUA"  (method syntax)</span>
+<span class="fn">print</span>(<span class="var">s</span>:<span class="fn">rep</span>(<span class="num">3</span>, <span class="str">"-"</span>))  <span class="cmt">-- "Lua-Lua-Lua"</span>
+
+<span class="cmt">-- The gotcha everyone hits: 0 is truthy!</span>
+<span class="kw">if</span> <span class="num">0</span>  <span class="kw">then</span> <span class="fn">print</span>(<span class="str">"truthy"</span>)  <span class="kw">end</span>  <span class="cmt">-- prints!</span>
+<span class="kw">if</span> <span class="str">""</span> <span class="kw">then</span> <span class="fn">print</span>(<span class="str">"truthy"</span>)  <span class="kw">end</span>  <span class="cmt">-- prints!</span>
+<span class="cmt">-- Only nil and false are falsy.</span>
+
+<span class="cmt">-- Multiple return values — no tuple wrapping needed</span>
+<span class="kw">local function</span> <span class="fn">stats</span>(<span class="var">t</span>)
+  <span class="kw">local</span> <span class="var">sum</span> = <span class="num">0</span>
+  <span class="kw">for</span> _, <span class="var">v</span> <span class="kw">in</span> <span class="fn">ipairs</span>(<span class="var">t</span>) <span class="kw">do</span> <span class="var">sum</span> = <span class="var">sum</span> + <span class="var">v</span> <span class="kw">end</span>
+  <span class="kw">return</span> <span class="var">sum</span>, <span class="var">sum</span> / <span class="op">#</span><span class="var">t</span>    <span class="cmt">-- two return values</span>
+<span class="kw">end</span>
+
+<span class="kw">local</span> <span class="var">total</span>, <span class="var">avg</span> = <span class="fn">stats</span>({<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>})
+<span class="fn">print</span>(<span class="var">total</span>, <span class="var">avg</span>)   <span class="cmt">-- 60   20.0</span>
+
+<span class="cmt">-- Closures: functions capture their upvalues</span>
+<span class="kw">local function</span> <span class="fn">adder</span>(<span class="var">n</span>)
+  <span class="kw">return function</span>(<span class="var">x</span>) <span class="kw">return</span> <span class="var">x</span> + <span class="var">n</span> <span class="kw">end</span>
+<span class="kw">end</span>
+<span class="kw">local</span> <span class="var">add5</span> = <span class="fn">adder</span>(<span class="num">5</span>)
+<span class="fn">print</span>(<span class="fn">add5</span>(<span class="num">10</span>))       <span class="cmt">-- 15</span></pre></div>
+    </div>
+
+    <div class="callout co-ember">
+      <div class="callout-icon">🔥</div>
+      <div class="callout-body"><strong>// The local Keyword Is Not Optional</strong>Without <code>local</code>, every variable is global — it becomes a key in the <code>_G</code> table. In an embedded application, globals are visible to the C host, which is sometimes intentional. But inside tight loops, local variable access is 2–3x faster than global lookups because locals are stored in registers.</div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 03: TABLES
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--sage);border-color:rgba(74,219,154,0.3);">Chapter 03</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">Tables: <span class="glow-sage">The Everything</span> Type</h2>
+    <div class="chapter-sub">// one data structure to replace them all</div>
+
+    <p class="lede">
+      What if you could design an entire programming language and give it only one data structure — and make that choice so brilliant that nobody ever needed anything else?
+    </p>
+
+    <p>Lua's table is simultaneously an array, a hash map, a set, a stack, a queue, a namespace, a module, and an object. It's implemented as a hybrid: integer keys are stored in a contiguous C array for O(1) access and cache efficiency; all other keys live in a hash table. Lua automatically migrates keys between halves as the table grows.</p>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">lua — tables as everything</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">-- As an array (1-indexed!)</span>
+<span class="kw">local</span> <span class="tbl">arr</span> = { <span class="str">"mercury"</span>, <span class="str">"venus"</span>, <span class="str">"earth"</span> }
+<span class="fn">print</span>(<span class="tbl">arr</span>[<span class="num">1</span>])        <span class="cmt">-- "mercury"</span>
+<span class="tbl">arr</span>[<span class="op">#</span><span class="tbl">arr</span>+<span class="num">1</span>] = <span class="str">"mars"</span>  <span class="cmt">-- append</span>
+
+<span class="cmt">-- As a hash map</span>
+<span class="kw">local</span> <span class="tbl">http</span> = { GET=<span class="num">200</span>, POST=<span class="num">201</span>, DELETE=<span class="num">204</span>, NOT_FOUND=<span class="num">404</span> }
+<span class="fn">print</span>(<span class="tbl">http</span>.GET)       <span class="cmt">-- 200</span>
+
+<span class="cmt">-- As a set (keys = members, values = true)</span>
+<span class="kw">local function</span> <span class="fn">Set</span>(<span class="var">items</span>)
+  <span class="kw">local</span> <span class="tbl">s</span> = {}
+  <span class="kw">for</span> _, <span class="var">v</span> <span class="kw">in</span> <span class="fn">ipairs</span>(<span class="var">items</span>) <span class="kw">do</span> <span class="tbl">s</span>[<span class="var">v</span>] = <span class="kw">true</span> <span class="kw">end</span>
+  <span class="kw">return</span> <span class="tbl">s</span>
+<span class="kw">end</span>
+<span class="kw">local</span> <span class="tbl">fruits</span> = <span class="fn">Set</span>({<span class="str">"apple"</span>, <span class="str">"mango"</span>, <span class="str">"banana"</span>})
+<span class="fn">print</span>(<span class="tbl">fruits</span>[<span class="str">"mango"</span>])  <span class="cmt">-- true</span>
+<span class="fn">print</span>(<span class="tbl">fruits</span>[<span class="str">"grape"</span>])  <span class="cmt">-- nil (not in set)</span>
+
+<span class="cmt">-- As a module (namespace)</span>
+<span class="kw">local</span> <span class="tbl">M</span> = {}
+
+<span class="kw">function</span> <span class="tbl">M</span>.<span class="fn">hello</span>() <span class="kw">return</span> <span class="str">"hello from module"</span> <span class="kw">end</span>
+<span class="kw">function</span> <span class="tbl">M</span>.<span class="fn">bye</span>()   <span class="kw">return</span> <span class="str">"goodbye"</span> <span class="kw">end</span>
+
+<span class="kw">return</span> <span class="tbl">M</span>   <span class="cmt">-- standard module pattern</span>
+
+<span class="cmt">-- table.* standard library</span>
+<span class="kw">local</span> <span class="tbl">t</span> = {<span class="num">3</span>,<span class="num">1</span>,<span class="num">4</span>,<span class="num">1</span>,<span class="num">5</span>,<span class="num">9</span>}
+<span class="tbl">table</span>.<span class="fn">sort</span>(<span class="tbl">t</span>)
+<span class="fn">print</span>(<span class="tbl">table</span>.<span class="fn">concat</span>(<span class="tbl">t</span>, <span class="str">", "</span>))  <span class="cmt">-- 1, 1, 3, 4, 5, 9</span>
+<span class="tbl">table</span>.<span class="fn">insert</span>(<span class="tbl">t</span>, <span class="num">2</span>, <span class="num">99</span>)         <span class="cmt">-- insert 99 at index 2</span>
+<span class="tbl">table</span>.<span class="fn">remove</span>(<span class="tbl">t</span>, <span class="num">1</span>)             <span class="cmt">-- remove first element</span></pre></div>
+    </div>
+
+    <div class="callout co-moon">
+      <div class="callout-icon">🧠</div>
+      <div class="callout-body"><strong>// Implementation Detail Worth Knowing</strong>The <code>#</code> length operator on tables returns a <em>border</em> — an index where <code>t[i] ~= nil</code> and <code>t[i+1] == nil</code>. For sequences (arrays with no holes), this is the length. For tables with holes, the result is undefined. This trips up virtually every intermediate Lua programmer.</div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 04: METATABLES & MAGIC
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--rose);border-color:rgba(232,74,123,0.3);">Chapter 04</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">Metatables <span class="glow-rose">&amp; Magic</span></h2>
+    <div class="chapter-sub">// operator overloading, inheritance, and the secret behind lua's OOP</div>
+
+    <p>Metatables are the most powerful — and most misunderstood — feature in Lua. They let you attach behaviour to tables: define what happens when you add two tables, compare them, access a missing key, or call a table like a function. The entire OOP system in Lua isn't built in — it's user-constructed from metatables.</p>
+
+    <table class="ctable">
+      <thead><tr><th>Metamethod</th><th>Triggered by</th><th>Common use case</th></tr></thead>
+      <tbody>
+        <tr><td>__index</td><td><code>t[k]</code> — key missing</td><td>Inheritance chain, default values, lazy loading</td></tr>
+        <tr><td>__newindex</td><td><code>t[k] = v</code> — new key</td><td>Read-only tables, change tracking, validation</td></tr>
+        <tr><td>__add / __sub</td><td><code>a + b</code>, <code>a - b</code></td><td>Vector / matrix arithmetic operators</td></tr>
+        <tr><td>__mul / __div</td><td><code>a * b</code>, <code>a / b</code></td><td>Scalar multiplication, quaternion math</td></tr>
+        <tr><td>__eq / __lt / __le</td><td><code>==</code>, <code>&lt;</code>, <code>&lt;=</code></td><td>Value equality, sorted data structures</td></tr>
+        <tr><td>__call</td><td><code>t(...)</code></td><td>Callable objects, functor pattern</td></tr>
+        <tr><td>__tostring</td><td><code>tostring(t)</code></td><td>Debug output, serialisation</td></tr>
+        <tr><td>__len</td><td><code>#t</code></td><td>Custom length for non-sequence tables</td></tr>
+        <tr><td>__concat</td><td><code>a .. b</code></td><td>String-like objects</td></tr>
+        <tr><td>__gc</td><td>GC collection</td><td>Resource cleanup, file handles, sockets</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">lua — building a class system with metatables</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">-- A fully functional class with inheritance</span>
+<span class="kw">local</span> <span class="tbl">Animal</span> = {}
+<span class="tbl">Animal</span>.__index = <span class="tbl">Animal</span>
+
+<span class="kw">function</span> <span class="tbl">Animal</span>.<span class="fn">new</span>(<span class="var">name</span>, <span class="var">sound</span>)
+  <span class="kw">return</span> <span class="fn">setmetatable</span>({ <span class="var">name</span>=<span class="var">name</span>, <span class="var">sound</span>=<span class="var">sound</span> }, <span class="tbl">Animal</span>)
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="tbl">Animal</span>:<span class="fn">speak</span>()
+  <span class="fn">print</span>(<span class="var">self</span>.<span class="var">name</span> .. <span class="str">" says: "</span> .. <span class="var">self</span>.<span class="var">sound</span>)
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="tbl">Animal</span>:<span class="fn">__tostring</span>()
+  <span class="kw">return</span> <span class="str">"Animal("</span> .. <span class="var">self</span>.<span class="var">name</span> .. <span class="str">")"</span>
+<span class="kw">end</span>
+
+<span class="cmt">-- Subclass: Dog inherits from Animal</span>
+<span class="kw">local</span> <span class="tbl">Dog</span> = <span class="fn">setmetatable</span>({}, { __index = <span class="tbl">Animal</span> })
+<span class="tbl">Dog</span>.__index = <span class="tbl">Dog</span>
+
+<span class="kw">function</span> <span class="tbl">Dog</span>.<span class="fn">new</span>(<span class="var">name</span>)
+  <span class="kw">local</span> <span class="var">self</span> = <span class="tbl">Animal</span>.<span class="fn">new</span>(<span class="var">name</span>, <span class="str">"Woof"</span>)
+  <span class="kw">return</span> <span class="fn">setmetatable</span>(<span class="var">self</span>, <span class="tbl">Dog</span>)
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="tbl">Dog</span>:<span class="fn">fetch</span>(<span class="var">item</span>)
+  <span class="fn">print</span>(<span class="var">self</span>.<span class="var">name</span> .. <span class="str">" fetches the "</span> .. <span class="var">item</span>)
+<span class="kw">end</span>
+
+<span class="kw">local</span> <span class="var">rex</span> = <span class="tbl">Dog</span>.<span class="fn">new</span>(<span class="str">"Rex"</span>)
+<span class="var">rex</span>:<span class="fn">speak</span>()      <span class="cmt">-- Rex says: Woof  (inherited)</span>
+<span class="var">rex</span>:<span class="fn">fetch</span>(<span class="str">"ball"</span>) <span class="cmt">-- Rex fetches the ball</span>
+<span class="fn">print</span>(<span class="fn">tostring</span>(<span class="var">rex</span>))  <span class="cmt">-- Animal(Rex)</span>
+
+<span class="cmt">-- Proxy table: intercept ALL reads and writes</span>
+<span class="kw">local function</span> <span class="fn">readonly</span>(<span class="var">t</span>)
+  <span class="kw">return</span> <span class="fn">setmetatable</span>({}, {
+    __index    = <span class="var">t</span>,
+    __newindex = <span class="kw">function</span>() <span class="fn">error</span>(<span class="str">"read-only!"</span>) <span class="kw">end</span>,
+    __len      = <span class="kw">function</span>() <span class="kw">return</span> <span class="op">#</span><span class="var">t</span> <span class="kw">end</span>,
+  })
+<span class="kw">end</span></pre></div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 05: COROUTINES
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 05</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title"><span class="glow-moon">Coroutines</span></h2>
+    <div class="chapter-sub">// cooperative multitasking that arrived 15 years before python's async/await</div>
+
+    <p class="lede">Lua's coroutines aren't just a feature — they're proof that the language designers understood something fundamental about concurrency that the industry took two more decades to grasp.
+    </p>
+
+    <p>A Lua coroutine is a thread of execution that yields voluntarily, transferring control back to the caller. There's no preemption, no OS involvement, no context switching overhead. The entire mechanism is cooperative: a coroutine runs until it calls <code>coroutine.yield()</code>, pauses itself, and waits to be <code>resume</code>d.</p>
+
+    <div class="vis">
+      <div class="vis-title">// Coroutine State Machine</div>
+      <div class="state-machine">
+        <div class="state-node sn-dead">
+          <div class="sn-name">dead</div>
+          <div class="sn-desc">function returned<br>or errored</div>
+        </div>
+        <div class="state-arrow">⟶</div>
+        <div class="state-node sn-suspend">
+          <div class="sn-name">suspended</div>
+          <div class="sn-desc">just created, or<br>after yield()</div>
+        </div>
+        <div class="state-arrow">⟶</div>
+        <div class="state-node sn-running">
+          <div class="sn-name">running</div>
+          <div class="sn-desc">currently executing<br>on this thread</div>
+        </div>
+        <div class="state-arrow">⟶</div>
+        <div class="state-node sn-normal">
+          <div class="sn-name">normal</div>
+          <div class="sn-desc">resumed another<br>coroutine</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px;font-family:'Fira Code',monospace;font-size:11px;color:var(--muted);">
+        create → suspended → resume → running → yield → suspended → resume...
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">lua — coroutines: three killer patterns</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">━━━ Pattern 1: Generator (infinite sequence) ━━━</span>
+<span class="kw">local function</span> <span class="fn">range</span>(<span class="var">from</span>, <span class="var">to</span>, <span class="var">step</span>)
+  <span class="var">step</span> = <span class="var">step</span> <span class="kw">or</span> <span class="num">1</span>
+  <span class="kw">return</span> <span class="fn">coroutine.wrap</span>(<span class="kw">function</span>()
+    <span class="kw">for</span> <span class="var">i</span> = <span class="var">from</span>, <span class="var">to</span>, <span class="var">step</span> <span class="kw">do</span>
+      <span class="fn">coroutine.yield</span>(<span class="var">i</span>)
+    <span class="kw">end</span>
+  <span class="kw">end</span>)
+<span class="kw">end</span>
+
+<span class="kw">for</span> <span class="var">v</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>, <span class="num">2</span>) <span class="kw">do</span>
+  <span class="fn">io.write</span>(<span class="var">v</span> .. <span class="str">" "</span>)  <span class="cmt">-- 1 3 5 7 9</span>
+<span class="kw">end</span>
+
+<span class="cmt">━━━ Pattern 2: Async I/O scheduler (mini event loop) ━━━</span>
+<span class="kw">local</span> <span class="tbl">tasks</span> = {}
+
+<span class="kw">local function</span> <span class="fn">spawn</span>(<span class="var">fn</span>)
+  <span class="tbl">tasks</span>[<span class="op">#</span><span class="tbl">tasks</span>+<span class="num">1</span>] = <span class="fn">coroutine.create</span>(<span class="var">fn</span>)
+<span class="kw">end</span>
+
+<span class="kw">local function</span> <span class="fn">run</span>()
+  <span class="kw">while</span> <span class="op">#</span><span class="tbl">tasks</span> > <span class="num">0</span> <span class="kw">do</span>
+    <span class="kw">local</span> <span class="var">co</span> = <span class="tbl">table</span>.<span class="fn">remove</span>(<span class="tbl">tasks</span>, <span class="num">1</span>)
+    <span class="kw">local</span> <span class="var">ok</span>, <span class="var">err</span> = <span class="fn">coroutine.resume</span>(<span class="var">co</span>)
+    <span class="kw">if</span> <span class="fn">coroutine.status</span>(<span class="var">co</span>) == <span class="str">"suspended"</span> <span class="kw">then</span>
+      <span class="tbl">tasks</span>[<span class="op">#</span><span class="tbl">tasks</span>+<span class="num">1</span>] = <span class="var">co</span>  <span class="cmt">-- reschedule</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="fn">spawn</span>(<span class="kw">function</span>()
+  <span class="fn">print</span>(<span class="str">"task A: step 1"</span>); <span class="fn">coroutine.yield</span>()
+  <span class="fn">print</span>(<span class="str">"task A: step 2"</span>)
+<span class="kw">end</span>)
+<span class="fn">spawn</span>(<span class="kw">function</span>()
+  <span class="fn">print</span>(<span class="str">"task B: step 1"</span>); <span class="fn">coroutine.yield</span>()
+  <span class="fn">print</span>(<span class="str">"task B: step 2"</span>)
+<span class="kw">end</span>)
+<span class="fn">run</span>()
+<span class="cmt">-- task A: step 1 / task B: step 1 / task A: step 2 / task B: step 2</span>
+
+<span class="cmt">━━━ Pattern 3: Bidirectional channel (value passing) ━━━</span>
+<span class="kw">local</span> <span class="var">co</span> = <span class="fn">coroutine.create</span>(<span class="kw">function</span>(<span class="var">seed</span>)
+  <span class="kw">local</span> <span class="var">val</span> = <span class="var">seed</span>
+  <span class="kw">while true</span> <span class="kw">do</span>
+    <span class="var">val</span> = <span class="fn">coroutine.yield</span>(<span class="var">val</span> * <span class="num">2</span>)  <span class="cmt">-- yield sends, resume receives</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>)
+
+<span class="fn">coroutine.resume</span>(<span class="var">co</span>, <span class="num">1</span>)       <span class="cmt">-- start: seed=1</span>
+<span class="kw">local</span> _, <span class="var">v</span> = <span class="fn">coroutine.resume</span>(<span class="var">co</span>, <span class="num">5</span>)
+<span class="fn">print</span>(<span class="var">v</span>)  <span class="cmt">-- 10  (5*2)</span></pre></div>
+    </div>
+
+    <div class="callout co-sage">
+      <div class="callout-icon">🎮</div>
+      <div class="callout-body"><strong>// Real World: World of Warcraft</strong>Every WoW addon that sequences combat actions, waits for animations, or runs AI behaviour trees uses Lua coroutines. The entire addon system runs inside the game's Lua VM. When your character casts a spell, waits for a cooldown, and then casts another — that's a coroutine sleeping and waking.</div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 06: THE C DNA
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--amber);border-color:rgba(232,169,74,0.3);">Chapter 06</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">The <span class="glow-amber">C DNA</span></h2>
+    <div class="chapter-sub">// why the c api is lua's greatest feature</div>
+
+    <p>Lua was designed from day one to be embedded. The C API is not a bolt-on — it's the foundation. Every interaction between a host application and Lua goes through a single consistent mechanism: the <strong>virtual stack</strong>. Push values onto it. Call Lua functions. Pop results off it. That's the whole API.</p>
+
+    <div class="bridge">
+      <div class="br-side br-left">
+        <div class="br-title" style="color:var(--moonglow);">🌙 Lua World</div>
+        <div class="br-sub">managed values</div>
+        <div class="br-item">Tables, Functions, Strings</div>
+        <div class="br-item">Coroutines, Userdata</div>
+        <div class="br-item">Garbage Collected</div>
+        <div class="br-item">Dynamic Typing</div>
+        <div class="br-item">require() / modules</div>
+      </div>
+      <div class="br-mid">
+        <div class="br-mid-title">lua_State*<br>Virtual Stack</div>
+        <div class="br-stack-item">lua_pushvalue</div>
+        <div class="br-arrow">↕</div>
+        <div class="br-stack-item">lua_toXXX</div>
+        <div class="br-arrow">↕</div>
+        <div class="br-stack-item">lua_call</div>
+        <div class="br-arrow">↕</div>
+        <div class="br-stack-item">luaL_newlib</div>
+      </div>
+      <div class="br-side br-right">
+        <div class="br-title" style="color:var(--sage);">⚙️ C World</div>
+        <div class="br-sub">raw performance</div>
+        <div class="br-item">System calls, Hardware</div>
+        <div class="br-item">Manual memory mgmt</div>
+        <div class="br-item">Static Typing</div>
+        <div class="br-item">Shared libraries (.so/.dll)</div>
+        <div class="br-item">Platform APIs</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">c — embedding lua in your application</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">// Expose a fast C function to Lua scripts</span>
+<span class="kw">static int</span> <span class="fn">l_fast_sqrt</span>(lua_State *<span class="var">L</span>) {
+    <span class="kw">double</span> <span class="var">n</span> = <span class="fn">luaL_checknumber</span>(<span class="var">L</span>, <span class="num">1</span>);  <span class="cmt">// arg 1 from stack</span>
+    <span class="fn">lua_pushnumber</span>(<span class="var">L</span>, <span class="fn">sqrt</span>(<span class="var">n</span>));          <span class="cmt">// push result</span>
+    <span class="kw">return</span> <span class="num">1</span>;                              <span class="cmt">// 1 return value</span>
+}
+
+<span class="cmt">// Register a whole library</span>
+<span class="kw">static const</span> luaL_Reg <span class="var">mylib</span>[] = {
+    { <span class="str">"sqrt"</span>,   <span class="fn">l_fast_sqrt</span>  },
+    { <span class="str">"sin"</span>,    <span class="fn">l_fast_sin</span>   },
+    { <span class="kw">NULL</span>,     <span class="kw">NULL</span>          }  <span class="cmt">// sentinel</span>
+};
+
+<span class="kw">int</span> <span class="fn">luaopen_mylib</span>(lua_State *<span class="var">L</span>) {
+    <span class="fn">luaL_newlib</span>(<span class="var">L</span>, <span class="var">mylib</span>);
+    <span class="kw">return</span> <span class="num">1</span>;
+}
+
+<span class="cmt">// Run a Lua script from C</span>
+lua_State *<span class="var">L</span> = <span class="fn">luaL_newstate</span>();
+<span class="fn">luaL_openlibs</span>(<span class="var">L</span>);
+<span class="fn">luaL_requiref</span>(<span class="var">L</span>, <span class="str">"mylib"</span>, <span class="fn">luaopen_mylib</span>, <span class="num">1</span>);
+<span class="fn">luaL_dofile</span>(<span class="var">L</span>, <span class="str">"script.lua"</span>);
+<span class="fn">lua_close</span>(<span class="var">L</span>);</pre></div>
+    </div>
+
+    <div class="pq">
+      <p>The design of the Lua-C API is a masterclass in the right level of abstraction. It's low enough to give you full control, high enough to spare you pointer arithmetic hell.</p>
+      <cite>— Lua mailing list, 2018</cite>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 07: LUAJIT
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--ember);border-color:rgba(232,90,42,0.3);">Chapter 07</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">LuaJIT: <span class="glow-ember">Speed Demon</span></h2>
+    <div class="chapter-sub">// when a scripting language starts competing with c</div>
+
+    <p>Mike Pall's LuaJIT is arguably the most impressive piece of compiler engineering ever written by one person. It implements a tracing JIT compiler for Lua that, for numerical workloads, regularly matches the performance of compiled C — while remaining fully compatible with standard Lua 5.1.</p>
+
+    <div class="vis">
+      <div class="vis-title">// Performance Relative to CPython (higher = faster)</div>
+
+      <div class="perf-row"><div class="perf-label"><span>LuaJIT (JIT on)</span><span style="color:var(--sage);">~50–100×</span></div><div class="perf-track"><div class="perf-fill" style="width:95%;background:linear-gradient(90deg,var(--sage),var(--moonglow))"></div></div></div>
+      <div class="perf-row"><div class="perf-label"><span>Lua 5.5 (interpreter)</span><span style="color:var(--moonglow);">~5–10×</span></div><div class="perf-track"><div class="perf-fill" style="width:45%;background:linear-gradient(90deg,var(--moonglow),#7b9cff88)"></div></div></div>
+      <div class="perf-row"><div class="perf-label"><span>CPython 3.12</span><span style="color:var(--muted);">baseline 1×</span></div><div class="perf-track"><div class="perf-fill" style="width:12%;background:var(--muted)"></div></div></div>
+      <div class="perf-row"><div class="perf-label"><span>PyPy (tracing JIT)</span><span style="color:var(--amber);">~4–8×</span></div><div class="perf-track"><div class="perf-fill" style="width:38%;background:linear-gradient(90deg,var(--amber),#e8a94a88)"></div></div></div>
+      <div class="perf-row"><div class="perf-label"><span>Node.js V8</span><span style="color:var(--rose);">~10–20×</span></div><div class="perf-track"><div class="perf-fill" style="width:60%;background:linear-gradient(90deg,var(--rose),#e84a7b88)"></div></div></div>
+
+      <div style="font-family:'Fira Code',monospace;font-size:10px;color:var(--muted);margin-top:16px;text-align:center;letter-spacing:0.1em;">benchmarks vary by workload type — numerical/loop-heavy code shows largest gains</div>
+    </div>
+
+    <p>LuaJIT's <strong>FFI (Foreign Function Interface)</strong> is particularly groundbreaking: it lets you call C functions and access C data structures from Lua with zero overhead — no wrapper code, no bindings — just declare the C prototype as a string and call it directly.</p>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">luajit ffi — call c with zero overhead</span>
+      </div>
+      <div class="code-body"><pre><span class="kw">local</span> <span class="var">ffi</span> = <span class="fn">require</span>(<span class="str">"ffi"</span>)
+
+<span class="cmt">-- Declare C prototypes directly as strings</span>
+<span class="var">ffi</span>.<span class="fn">cdef</span>[[
+  double sqrt(double x);
+  int    printf(const char *fmt, ...);
+  void  *malloc(size_t size);
+  void   free(void *ptr);
+]]
+
+<span class="cmt">-- Call them directly — zero marshalling overhead</span>
+<span class="fn">print</span>(<span class="var">ffi</span>.<span class="tbl">C</span>.<span class="fn">sqrt</span>(<span class="num">2</span>))        <span class="cmt">-- 1.4142135623731</span>
+<span class="var">ffi</span>.<span class="tbl">C</span>.<span class="fn">printf</span>(<span class="str">"Hello %s\n"</span>, <span class="str">"LuaJIT"</span>)
+
+<span class="cmt">-- Define C structs and work with them</span>
+<span class="var">ffi</span>.<span class="fn">cdef</span>[[
+  typedef struct { float x, y, z; } Vec3;
+]]
+
+<span class="kw">local</span> <span class="var">v</span> = <span class="var">ffi</span>.<span class="fn">new</span>(<span class="str">"Vec3"</span>, <span class="num">1.0</span>, <span class="num">2.0</span>, <span class="num">3.0</span>)
+<span class="fn">print</span>(<span class="var">v</span>.<span class="var">x</span>, <span class="var">v</span>.<span class="var">y</span>, <span class="var">v</span>.<span class="var">z</span>)  <span class="cmt">-- 1.0  2.0  3.0</span></pre></div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 08: LUA IN THE WILD
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--sage);border-color:rgba(74,219,154,0.3);">Chapter 08</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">Lua <span class="glow-sage">in the Wild</span></h2>
+    <div class="chapter-sub">// a language hiding in plain sight across the entire software stack</div>
+
+    <div class="eco-grid">
+      <div class="eco-card eco-1">
+        <span class="eco-icon">🎮</span>
+        <div class="eco-name">Game Development</div>
+        <div class="eco-tech">Roblox · WoW · Factorio · Alan Wake 2 · Warframe</div>
+        <div class="eco-desc">Roblox's Luau (new type solver GA'd Nov 2025) powers 3M+ devs. WoW's addon system has run on Lua since 2004. Alan Wake 2 and Warframe adopted Luau in 2024–25. Factorio's entire mod API is Lua.</div>
+      </div>
+      <div class="eco-card eco-2">
+        <span class="eco-icon">⚡</span>
+        <div class="eco-name">High-Performance Web</div>
+        <div class="eco-tech">Nginx · OpenResty · Kong API</div>
+        <div class="eco-desc">ngx_lua embeds Lua inside Nginx's event loop. OpenResty powers Cloudflare's edge network. Kong API Gateway writes all its plugins in Lua.</div>
+      </div>
+      <div class="eco-card eco-3">
+        <span class="eco-icon">🗄</span>
+        <div class="eco-name">Database Scripting</div>
+        <div class="eco-tech">Redis · Tarantool · ScyllaDB</div>
+        <div class="eco-desc">Redis EVAL executes Lua atomically — one round trip for complex transactions. Tarantool is a database written in C and scripted entirely in Lua.</div>
+      </div>
+      <div class="eco-card eco-4">
+        <span class="eco-icon">🛡</span>
+        <div class="eco-name">Security & Networking</div>
+        <div class="eco-tech">Wireshark · Nmap · Suricata</div>
+        <div class="eco-desc">Wireshark protocol dissectors are Lua. Nmap's NSE (scripting engine) uses Lua for network discovery. Suricata IDS rules can embed Lua for detection logic.</div>
+      </div>
+      <div class="eco-card eco-5">
+        <span class="eco-icon">🖼</span>
+        <div class="eco-name">Creative Software</div>
+        <div class="eco-tech">Adobe Lightroom · Obs Studio</div>
+        <div class="eco-desc">The entire Lightroom Classic plugin SDK is Lua. OBS Studio uses Lua (and Python) for scripting scene transitions and automation.</div>
+      </div>
+      <div class="eco-card eco-6">
+        <span class="eco-icon">🔬</span>
+        <div class="eco-name">Science & Embedded</div>
+        <div class="eco-tech">eLua · NodeMCU · ESA</div>
+        <div class="eco-desc">NodeMCU brought Lua to ESP8266 microcontrollers. ESA has used Lua in satellite software. eLua targets bare-metal embedded systems with 256KB RAM.</div>
+      </div>
+    </div>
+
+    <div class="callout co-amber">
+      <div class="callout-icon">📡</div>
+      <div class="callout-body"><strong>// The Cisco Factor</strong>Cisco IOS XE includes Lua as part of its EEM (Embedded Event Manager). Network engineers write Lua scripts that react to router events — interface down, CPU spike, log pattern match — without SSH access. Lua runs on routers that power the internet.</div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 09: ECOSYSTEM & DIALECTS
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--rose);border-color:rgba(232,74,123,0.3);">Chapter 09</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">Ecosystem <span class="glow-rose">&amp; Dialects</span></h2>
+    <div class="chapter-sub">// the languages that grew from the moon</div>
+
+    <table class="ctable">
+      <thead><tr><th>Project</th><th>What it is</th><th>Key innovation</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td>LuaJIT</td><td>Tracing JIT compiler for Lua 5.1</td><td>FFI — call C from Lua at zero cost</td><td>Cloudflare, Tarantool, games</td></tr>
+        <tr><td>Luau</td><td>Roblox's typed Lua fork (open-source)</td><td>New type solver (GA Nov 2025), native codegen, LSP</td><td>Roblox, Alan Wake 2, Warframe, Second Life</td></tr>
+        <tr><td>MoonScript</td><td>Compiles to Lua</td><td>CoffeeScript-style classes + comprehensions</td><td>Indie game devs, Lapis apps</td></tr>
+        <tr><td>Fennel</td><td>Lisp that compiles to Lua</td><td>Macros, S-expressions, full Lua interop</td><td>Neovim plugin authors</td></tr>
+        <tr><td>Terra</td><td>Low-level language atop LuaJIT</td><td>Staged metaprogramming → machine code</td><td>Research, DSL builders</td></tr>
+        <tr><td>Teal</td><td>Typed Lua dialect</td><td>Static typing with full type inference</td><td>Production Lua codebases</td></tr>
+        <tr><td>LuaRocks</td><td>Package manager</td><td>Standard rock (package) distribution</td><td>Entire Lua ecosystem</td></tr>
+        <tr><td>Lapis</td><td>Web framework on OpenResty</td><td>Full MVC framework inside Nginx</td><td>Itch.io was built on Lapis</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">fennel — a lisp that compiles to lua</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">;; Fennel: Lisp syntax → Lua bytecode</span>
+<span class="cmt">;; This is real code that compiles to standard Lua</span>
+
+(<span class="kw">fn</span> <span class="fn">fibonacci</span> [<span class="var">n</span>]
+  (<span class="kw">if</span> (<span class="op">&lt;=</span> <span class="var">n</span> <span class="num">1</span>)
+    <span class="var">n</span>
+    (<span class="op">+</span> (<span class="fn">fibonacci</span> (<span class="op">-</span> <span class="var">n</span> <span class="num">1</span>))
+       (<span class="fn">fibonacci</span> (<span class="op">-</span> <span class="var">n</span> <span class="num">2</span>)))))
+
+<span class="cmt">;; Compiles to this Lua:</span>
+<span class="cmt">-- local function fibonacci(n)</span>
+<span class="cmt">--   if n &lt;= 1 then return n</span>
+<span class="cmt">--   else return fibonacci(n-1) + fibonacci(n-2) end</span>
+<span class="cmt">-- end</span>
+
+<span class="cmt">;; Macros — Lua doesn't have these</span>
+(<span class="kw">macro</span> <span class="fn">when</span> [<span class="var">cond</span> &amp;<span class="var">body</span>]
+  `(<span class="kw">if</span> ,<span class="var">cond</span> (<span class="kw">do</span> ,(<span class="fn">unpack</span> <span class="var">body</span>)))</pre></div>
+    </div>
+  </div>
+
+  <hr class="ch-hr">
+
+  <!-- ────────────────────────────────────────────────────
+       CH 10: LUA'S FUTURE
+  ──────────────────────────────────────────────────── -->
+  <div class="chapter">
+    <div class="chapter-marker">
+      <span class="ch-badge" style="color:var(--moonglow);border-color:rgba(123,156,255,0.3);">Chapter 10</span>
+      <div class="ch-line"></div>
+    </div>
+    <h2 class="chapter-title">Where the <span class="glow-moon">Moon</span> is Headed</h2>
+    <div class="chapter-sub">// lua in 2026 and beyond</div>
+
+    <p>Lua is not a language chasing trends. No corporate foundation. No conference circuit. No social media presence. Just three professors at PUC-Rio — Roberto Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes — releasing software only when it's right. <em>Lua 5.5 dropped on December 22, 2025, five years after 5.4.</em> That cadence is the feature.</p>
+
+    <p><strong>Lua 5.5</strong> is the most impactful release since 5.3. Large arrays now use <strong>~60% less memory</strong> — transformational for embedded systems running on 256KB RAM. The generational GC's major collections are now fully incremental, eliminating the stop-the-world pauses that plagued Redis scripts and Nginx request handlers in 5.4. The new <code>global</code> declaration keyword finally lets programmers catch typo-induced global leaks at compile time, and for-loop control variables are now immutable by default — a safety win that aligns Lua with modern language design.</p>
+
+    <p><strong>Luau</strong> from Roblox hit a landmark milestone in November 2025 when its ground-up rewritten type solver graduated from Studio Beta to general release. It now powers Alan Wake 2, Warframe, Second Life (via SLua), and Roblox's 3M+ developers. The spec gap between Luau and standard Lua is widening in the best possible way — Luau is Lua's TypeScript moment, and other games are taking notice.</p>
+
+    <p>The <strong>Neovim</strong> ecosystem, anchored by package managers like <strong>lazy.nvim</strong> and thousands of Lua-native plugins, has become one of the most active Lua communities worldwide. In February 2026, Lua became an <strong>SPI (Software in the Public Interest) associated project</strong> — a governance milestone ensuring long-term stewardship independent of any single institution. Wikipedia uses Lua as its template language. The Moon is far from setting.</p>
+
+    <div class="code-wrap">
+      <div class="code-top">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+        <span class="code-label">lua 5.5 — what's new in the latest release</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">━━━ 1. Global Declarations — catch typos at compile time ━━━</span>
+<span class="cmt">-- Lua 5.4: typo silently creates a new global</span>
+<span class="var">resonse</span> = <span class="fn">get</span>(<span class="str">"url"</span>)      <span class="cmt">-- 'response' misspelled → silent bug</span>
+
+<span class="cmt">-- Lua 5.5: declare globals explicitly</span>
+<span class="kw">global</span> <span class="var">response</span>            <span class="cmt">-- declare intent</span>
+<span class="var">response</span> = <span class="fn">get</span>(<span class="str">"url"</span>)     <span class="cmt">-- 'resonse' would now error ✓</span>
+
+<span class="cmt">━━━ 2. Read-only for-loop variables ━━━</span>
+<span class="kw">for</span> <span class="var">i</span> = <span class="num">1</span>, <span class="num">10</span> <span class="kw">do</span>
+  <span class="cmt">-- i = i + 1   ← compile error in 5.5! i is now const</span>
+  <span class="fn">print</span>(<span class="var">i</span>)
+<span class="kw">end</span>
+
+<span class="cmt">━━━ 3. table.create() — pre-allocated arrays ━━━</span>
+<span class="cmt">-- Pre-allocate 10,000 slots → no rehashing, ~60% less RAM</span>
+<span class="kw">local</span> <span class="tbl">arr</span> = <span class="tbl">table</span>.<span class="fn">create</span>(<span class="num">10000</span>)
+<span class="kw">for</span> <span class="var">i</span> = <span class="num">1</span>, <span class="num">10000</span> <span class="kw">do</span>
+  <span class="tbl">arr</span>[<span class="var">i</span>] = <span class="var">i</span> * <span class="var">i</span>
+<span class="kw">end</span>
+<span class="cmt">-- In Lua 5.4, large arrays wasted >40% RAM in alignment padding</span>
+<span class="cmt">-- 5.5 compact arrays store sequential integer keys tightly</span>
+
+<span class="cmt">━━━ 4. Incremental major GC — no stop-the-world pauses ━━━</span>
+<span class="cmt">-- Lua 5.4: major GC sweeps entire heap atomically (spike!)</span>
+<span class="cmt">-- Lua 5.5: major GC runs incrementally in small steps</span>
+<span class="cmt">-- Result: Redis scripts get predictable latency,</span>
+<span class="cmt">--         Nginx never pauses, games never drop frames</span>
+<span class="fn">collectgarbage</span>(<span class="str">"incremental"</span>)   <span class="cmt">-- default in 5.5</span>
+
+<span class="cmt">━━━ 5. utf8.offset returns final character position ━━━</span>
+<span class="kw">local</span> <span class="var">s</span> = <span class="str">"Héllo"</span>
+<span class="fn">print</span>(<span class="fn">utf8.offset</span>(<span class="var">s</span>, <span class="num">2</span>))   <span class="cmt">-- byte pos of 2nd character</span>
+<span class="fn">print</span>(<span class="fn">utf8.offset</span>(<span class="var">s</span>, <span class="op">-</span><span class="num">1</span>))  <span class="cmt">-- final char pos (new in 5.5)</span></pre></div>
+    </div>
+
+    <div class="callout co-moon">
+      <div class="callout-icon">🔭</div>
+      <div class="callout-body"><strong>// Lua 5.5 — Current Stable (Released Dec 22, 2025)</strong>
+        The biggest release in five years. Key features: <strong>explicit global declarations</strong> (catch typo-globals at compile time), <strong>60% memory reduction</strong> for large arrays via compact storage, <strong>incremental major GC</strong> (no more stop-the-world pauses), <strong>read-only for-loop variables</strong>, <code>table.create()</code>, named vararg tables, external strings, <code>luaL_openselectedlibs</code>, and dynamic readline loading. LuaRocks and Teal are mid-migration to full 5.5 support.
+      </div>
+    </div>
+
+    <p>The philosophy that made Lua great in 1993 — radical minimalism, embeddability, one powerful data structure — keeps it indispensable in 2026. Five years of patience delivered Lua 5.5's 60% memory savings and pause-free GC. That's not a language stagnating. That's a language being done right.</p>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <div class="closing-glyph">🌙</div>
+    <p class="closing-text">
+      The Moon doesn't shout. It doesn't trend. It doesn't have a build system or a package manifest. It just quietly illuminates — and has done so for thirty-two years.
+    </p>
+    <p style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);letter-spacing:0.1em;">// end of article</p>
+
+    <div class="tag-cloud">
+      <span class="tag">#Lua</span>
+      <span class="tag">#Lua55</span>
+      <span class="tag">#LuaJIT</span>
+      <span class="tag">#Programming</span>
+      <span class="tag">#GameDev</span>
+      <span class="tag">#EmbeddedSystems</span>
+      <span class="tag">#Coroutines</span>
+      <span class="tag">#OpenResty</span>
+      <span class="tag">#Redis</span>
+      <span class="tag">#Roblox</span>
+      <span class="tag">#Metatables</span>
+      <span class="tag">#CProgramming</span>
+      <span class="tag">#ScriptingLanguages</span>
+      <span class="tag">#Fennel</span>
+      <span class="tag">#Luau</span>
+      <span class="tag">#SoftwareEngineering</span>
+      <span class="tag">#BackendDev</span>
+    </div>
+  </div>
+
+</div><!-- /article -->
+
+<script>
+// ── Generate star field ──
+const sf = document.getElementById('stars');
+for (let i = 0; i < 180; i++) {
+  const s = document.createElement('div');
+  s.className = 's';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `
+    width:${size}px;height:${size}px;
+    top:${Math.random()*100}%;
+    left:${Math.random()*100}%;
+    animation-duration:${Math.random()*4+2}s;
+    animation-delay:${Math.random()*5}s;
+  `;
+  sf.appendChild(s);
+}
+
+// ── Theme toggle ──
+const btn   = document.getElementById('themeToggle');
+const label = document.getElementById('toggleLabel');
+const emoji = document.getElementById('toggleEmoji');
+const html  = document.documentElement;
+
+let isDark = true;
+
+btn.addEventListener('click', () => {
+  isDark = !isDark;
+  if (isDark) {
+    html.removeAttribute('data-theme');
+    label.textContent = 'dark';
+    emoji.textContent = '🌙';
+  } else {
+    html.setAttribute('data-theme', 'light');
+    label.textContent = 'light';
+    emoji.textContent = '☀️';
+  }
+});
+</script>
+</body>
+</html>
